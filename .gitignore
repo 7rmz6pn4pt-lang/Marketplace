@@ -1,0 +1,7 @@
+seen.json
+seen.json.bak
+seen.tmp
+watcher.log*
+launchd.*.log
+__pycache__/
+.pytest_cache/

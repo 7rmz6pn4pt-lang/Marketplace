@@ -1,0 +1,114 @@
+# Trek Domane AL 3 watcher configuration.
+# After editing, check it with:  python watcher.py --dry-run
+
+search:
+  keywords: "trek domane"          # what gets typed into each site's search
+  suburb: "Richmond"
+  state: "VIC"
+  postcode: "3121"
+  radius_km: 10
+
+# Matching rules. Terms are case-insensitive and whole-word; "-" and "_" are
+# treated as spaces, so "al 3" also matches "AL-3".
+match:
+  must_contain_all: ["domane"]                  # title or description
+  must_contain_any: ["al 3", "al3", "al-3"]     # title or description
+  size_terms: ["58", "58cm", "58 cm", "xl"]
+  # If a listing clearly states a different frame size (e.g. "56cm", "size M")
+  # and never mentions 58/XL, drop it. Set false to keep those too.
+  drop_other_sizes: true
+  disc_terms: ["disc", "thru axle", "thru-axle", "through axle", "gen 3", "gen3", "gen 4", "gen4", "hydraulic"]
+  disc_min_year: 2020                           # a year >= this also counts as disc
+  rim_brake_terms: ["rim brake", "rim brakes", "rim-brake", "caliper brake", "caliper brakes", "calliper"]
+  # Checked against the TITLE only (descriptions often compare with other models).
+  exclude_title_terms:
+    - "domane sl"
+    - "domane slr"
+    - "slr"
+    - "sl 3"
+    - "sl 4"
+    - "sl 5"
+    - "sl 6"
+    - "sl 7"
+    - "sl 8"
+    - "sl 9"
+    - "al 2"
+    - "al2"
+    - "al 4"
+    - "al4"
+    - "al 5"
+    - "al5"
+    - "frame only"
+    - "frameset"
+    - "frame set"
+    - "frame and fork"
+    - "parts only"
+    - "for parts"
+    - "wheelset"
+    - "wheels only"
+    - "groupset"
+    - "wanted"
+    - "wtb"
+    - "looking for"
+    - "want to buy"
+  exclude_description_terms: ["frame only", "frameset only", "parts only", "selling for parts"]
+
+sources:
+  gumtree:
+    enabled: true
+    # Gumtree's own search: Bicycles category, Richmond VIC 3121, 10 km radius, newest first.
+    # To change it, do the search on gumtree.com.au in your browser and paste the URL here.
+    search_url: "https://www.gumtree.com.au/s-bicycles/richmond-melbourne/trek+domane/k0c18560l3001761r10?sort=date"
+  bikesales:
+    enabled: true
+    # Leave empty to type the keywords into bikesales' own search box.
+    # Better: search on bikesales.com.au in your browser (add a location filter
+    # if offered), then paste the results URL here. Listings are filtered by
+    # suburb/postcode either way.
+    search_url: ""
+  ebay:
+    enabled: true
+    # Optional official API (developer.ebay.com, then Application Keys > Production).
+    # Leave blank to use the normal search results page instead.
+    # You can also set the env vars EBAY_CLIENT_ID / EBAY_CLIENT_SECRET.
+    api_client_id: ""
+    api_client_secret: ""
+    # Results page: newest first, items within radius_km of the postcode.
+    search_url: "https://www.ebay.com.au/sch/i.html?_nkw=trek+domane&_sop=10&_stpos=3121&_sadis=10&_fspt=1&LH_PrefLoc=1"
+
+notify:
+  quiet_nothing_new: false      # true = send one "nothing new" line on days with no matches
+  alert_on_source_failure: true
+  ntfy:
+    enabled: true
+    server: "https://ntfy.sh"
+    topic: "CHANGE-ME"          # the topic you subscribe to in the ntfy app
+    priority: 4                 # 1 (min) to 5 (max)
+  email:
+    enabled: false
+    mode: "fallback"            # "fallback" = only if ntfy fails; "always" = send both
+    smtp_host: "smtp.gmail.com"
+    smtp_port: 587              # 587 = STARTTLS, 465 = SSL
+    username: ""
+    password: ""                # better: leave blank and set env var WATCHER_SMTP_PASSWORD
+    from_addr: ""
+    to_addr: ""
+
+politeness:
+  delay_seconds_min: 2.5        # pause between page loads
+  delay_seconds_max: 5.0
+  max_detail_pages_per_source: 20   # new listings opened per source per run (the rest wait until tomorrow)
+  user_agent: "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36"
+
+browser:
+  headless: true
+  executable_path: ""           # leave empty for Playwright's own Chromium
+
+schedule:
+  timezone: "Australia/Melbourne"
+  run_at_hour: 7                # runs once per day, first time the computer is awake at/after this hour
+
+# Extra suburbs for the distance check, if one near you is missing:
+#   extra_suburbs:
+#     "some suburb": [-37.80, 145.00, "3000"]
+extra_suburbs: {}
