@@ -1,6 +1,6 @@
 # Trek Domane AL 3 watcher
 
-Every morning this checks **Gumtree AU**, **bikesales.com.au** and **eBay AU** for a
+Every morning this checks **Gumtree AU** and **eBay AU** (plus **bikesales.com.au**, off by default, see below) for a
 second-hand Trek Domane AL 3 (disc, 58 cm) near Richmond VIC 3121, and pushes **new**
 matches to your phone with [ntfy](https://ntfy.sh).
 
@@ -33,15 +33,21 @@ wanted ads, ads that state a different size, and anything outside 10 km.
 
 ## 1. One-time setup
 
-You need Python 3.10 or newer.
+You need Python 3.9 or newer.
+
+**Mac** (keep the folder in your home folder, e.g. `~/bike-watcher`, not in
+Downloads/Desktop/Documents: macOS won't let scheduled jobs read those):
 
 ```bash
-cd path/to/this/folder
-python3 -m pip install -r requirements.txt
-python3 -m playwright install chromium
+cd ~/bike-watcher
+python3 -m venv .venv
+.venv/bin/pip install -r requirements.txt
+.venv/bin/python -m playwright install chromium
 ```
 
-(On Windows, use `py` instead of `python3`.)
+Then use `.venv/bin/python` wherever this README says `python3`.
+
+**Windows / Linux:** the same, with `py -m venv .venv` and `.venv\Scripts\python` on Windows.
 
 **Phone:** install the **ntfy** app (iOS/Android, free, no account). Tap **+** and
 subscribe to a topic name of your choice. Anyone who knows the name can read the
@@ -167,7 +173,11 @@ the next day). Ads already in `seen.json` are never opened again.
 ## Troubleshooting
 
 * `Playwright's Chromium is not installed`: run `python3 -m playwright install chromium`.
-* **A source says "blocked by the site's bot protection":** bikesales in particular
+* **bikesales is off by default.** In a live test (Oct 2026) bikesales.com.au only listed
+  motorbikes (no bicycle category) and showed a "press & hold" human check on search
+  pages. Turn it on only if that changes.
+* **A source says "blocked by the site's bot protection":** these sites block cloud/data-centre
+  computers. From a normal home internet connection they usually work. bikesales in particular
   protects itself aggressively. Try `browser: headless: false` in `config.yaml` (a visible
   browser window opens briefly during the run), or turn that source off.
 * **No alerts at all:** run `python3 watcher.py --test-notify`, and check the topic in

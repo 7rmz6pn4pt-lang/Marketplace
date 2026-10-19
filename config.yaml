@@ -60,7 +60,9 @@ sources:
     # To change it, do the search on gumtree.com.au in your browser and paste the URL here.
     search_url: "https://www.gumtree.com.au/s-bicycles/richmond-melbourne/trek+domane/k0c18560l3001761r10?sort=date"
   bikesales:
-    enabled: true
+    # OFF: tested Oct 2026 - bikesales.com.au only lists motorbikes (no bicycle
+    # category), and its search pages show a "press & hold, are you human" check.
+    enabled: false
     # Leave empty to type the keywords into bikesales' own search box.
     # Better: search on bikesales.com.au in your browser (add a location filter
     # if offered), then paste the results URL here. Listings are filtered by

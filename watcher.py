@@ -143,6 +143,7 @@ class SourceResult:
     found: int = 0
     new: int = 0
     checked: int = 0
+    deferred: int = 0
     matches: list[Listing] = field(default_factory=list)
     rejected: list[Listing] = field(default_factory=list)
 
@@ -492,9 +493,10 @@ def process_items(br, name, items, cfg, seen, res: SourceResult, server_side_rad
             continue
         res.new += 1
         if res.checked >= limit:
-            log.info("  [%s] detail limit reached; %s left for next run", name, url)
+            res.deferred += 1
             continue
-        title = (it.get("title") or "").strip() or (it.get("text") or "").split("\n")[0]
+        lines = [l.strip() for l in (it.get("title") or it.get("text") or "").splitlines() if len(l.strip()) > 3]
+        title = max(lines[:3], key=len) if lines else ""
         lst = Listing(source=name, url=url, title=title[:200], card_text=it.get("text", ""))
         lst.price = it.get("price") or find_price(lst.card_text)
         # Cheap pre-check on the card so we don't open obviously irrelevant ads.
@@ -537,7 +539,7 @@ def source_gumtree(br, cfg, seen, res):
 
 def source_bikesales(br, cfg, seen, res):
     url = cfg["sources"]["bikesales"].get("search_url")
-    pattern = r"bikesales\.com\.au/.*details/"
+    pattern = r"bikesales\.com\.au/bikes/details/"
     if url:
         scrape_with_browser(br, "bikesales", url, pattern, cfg, seen, res, server_side_radius=False)
         return
@@ -568,6 +570,9 @@ def source_bikesales(br, cfg, seen, res):
     except Exception:
         pass
     res.search_url = br.page.url
+    if urlsplit(br.page.url).path in ("", "/"):
+        raise SourceError("typing into the search box didn't open a results page - "
+                          "paste a search URL into config.yaml > sources.bikesales.search_url")
     log.info("  [bikesales] search box led to %s", br.page.url)
     br.scroll()
     items = br.collect(pattern)
@@ -809,6 +814,8 @@ def report_source(r: SourceResult):
         return
     log.info("  search: %s", r.search_url)
     log.info("  %d listing(s) on the results page, %d not seen before, %d opened", r.found, r.new, r.checked)
+    if r.deferred:
+        log.info("  %d more new listing(s) left for the next run (politeness limit)", r.deferred)
     for m in r.matches:
         log.info("  MATCH   %s | %s | %s | %s | %s", m.title[:70], m.price, m.location or "?", " ".join(m.labels), m.url)
     for m in r.rejected:
